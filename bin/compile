@@ -10,7 +10,7 @@ unset GIT_DIR     # Avoid GIT_DIR leak from previous build steps
 ### Constants
 
 # This is used by the buildpack stdlib for metrics
-# shellcheck disable=SC2034 
+# shellcheck disable=SC2034
 BPLOG_PREFIX="buildpack.nodejs"
 
 ### Configure directories
@@ -55,6 +55,8 @@ source "$BP_DIR/lib/experiments.sh"
 # shellcheck source=lib/builddata.sh
 source "$BP_DIR/lib/builddata.sh"
 
+BUILD_DIR=$(cd $BUILD_DIR/$(read_json "$BUILD_DIR/app.json" ".build.cwd"); pwd)
+
 export PATH="$BUILD_DIR/.heroku/node/bin:$BUILD_DIR/.heroku/yarn/bin":$PATH
 
 LOG_FILE=$(mktemp -t node-build-log.XXXXX)
@@ -96,7 +98,7 @@ meta_set "build-step" "init"
 experiments_init "nodejs" "$BUILD_DIR" "$CACHE_DIR" "$BP_DIR/experiments"
 log_initial_state
 generate_uuids
- 
+
 ### Failures that should be caught immediately
 
 fail_dot_heroku "$BUILD_DIR"

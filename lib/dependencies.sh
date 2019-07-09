@@ -57,6 +57,7 @@ run_build_script() {
   local build_dir=${1:-}
   local has_build_script has_heroku_build_script
 
+  has_build_sandbox_script=$(has_script "$build_dir/package.json" "build-sandbox")
   has_build_script=$(has_script "$build_dir/package.json" "build")
   has_heroku_build_script=$(has_script "$build_dir/package.json" "heroku-postbuild")
 
@@ -67,6 +68,9 @@ run_build_script() {
   elif [[ "$has_heroku_build_script" == "true" ]]; then
     mcount "scripts.heroku-postbuild"
     run_if_present "$build_dir" 'heroku-postbuild'
+  elif [[ "$has_build_sandbox_script" == "true" ]]; then
+    mcount "scripts.build-sandbox"
+    run_if_present "$build_dir" 'build-sandbox'
   elif [[ "$has_build_script" == "true" ]]; then
     mcount "scripts.build"
     run_if_present "$build_dir" 'build'
@@ -92,7 +96,7 @@ yarn_node_modules() {
 }
 
 yarn_prune_devdependencies() {
-  local build_dir=${1:-} 
+  local build_dir=${1:-}
 
   if [ "$NODE_ENV" == "test" ]; then
     echo "Skipping because NODE_ENV is 'test'"
@@ -106,7 +110,7 @@ yarn_prune_devdependencies() {
     echo "Skipping because YARN_PRODUCTION is '$YARN_PRODUCTION'"
     meta_set "skipped-prune" "true"
     return 0
-  else 
+  else
     cd "$build_dir" || return
     monitor "yarn-prune" yarn install --frozen-lockfile --ignore-engines --ignore-scripts --prefer-offline 2>&1
     meta_set "skipped-prune" "false"
@@ -180,7 +184,7 @@ npm_rebuild() {
 
 npm_prune_devdependencies() {
   local npm_version
-  local build_dir=${1:-} 
+  local build_dir=${1:-}
 
   npm_version=$(npm --version)
 
